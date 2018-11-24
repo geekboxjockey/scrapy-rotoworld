@@ -4,7 +4,7 @@ class PlayerSpider(scrapy.Spider):
     name = "players"
 
     def start_requests(self):
-        urls = [ "http://www.rotoworld.com/player/nba/" + str(x) for x in range(1,500)]
+        urls = [ "http://www.rotoworld.com/player/nba/" + str(x) for x in range(1,1000)]
         
         #urls = [
         #    'http://www.rotoworld.com/player/nba/1',
@@ -18,10 +18,12 @@ class PlayerSpider(scrapy.Spider):
             yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
+        table_items =  response.xpath('//*[contains(@id,"tblPlayerDetails")]//tr//td/text()').extract()
+        name_items =  response.css('.playername h1::text').extract()
         yield {
-            'name' : response.css('.playername h1::text').extract()[0].split('|')[0],
-            'pos': response.css('.playername h1::text').extract()[0].split('|')[1],
-            'dob': response.xpath('//*[contains(@id,"tblPlayerDetails")]//tr//td/text()').extract()[2].split()[2],
-            'height': response.xpath('//*[contains(@id,"tblPlayerDetails")]//tr//td/text()').extract()[4].split()[0],
-            'weight': response.xpath('//*[contains(@id,"tblPlayerDetails")]//tr//td/text()').extract()[4].split()[2]
+            'name' : name_items[0].split('|')[0].strip(),
+            'pos': name_items[0].split('|')[1].strip(),
+            'dob': table_items[2].split()[2].strip(),
+            'height': table_items[4].split()[0].strip(),
+            'weight': table_items[4].split()[2].strip()
         }
